@@ -459,9 +459,30 @@ def download_file(
 
             # Parse HTML content to extract the actual download link
             soup = Soup(html)
-            base64_data = soup.find("a", {"id": "downloadButton"}).attrs["data-scrambled-url"]
-            decode_base_64_link = base64.b64decode(base64_data).decode("utf-8")
-            parsed_url = urllib.parse.urlparse(decode_base_64_link)
+            download_button = soup.find("a", {"id": "downloadButton"})
+            if not download_button:
+                print_error(download_link)
+                if limiter:
+                    limiter.release()
+                return
+
+            # Try scrambled URL first (base64-encoded), then fall back to href
+            direct_link = None
+            scrambled_attr = download_button.attrs.get("data-scrambled-url")
+            if scrambled_attr:
+                direct_link = base64.b64decode(scrambled_attr).decode("utf-8")
+            else:
+                direct_link = download_button.attrs.get("href")
+
+            if not direct_link or direct_link == "#":
+                print_error(download_link)
+                if limiter:
+                    limiter.release()
+                return
+
+            # Handle relative URLs
+            direct_link = urllib.parse.urljoin(download_link, direct_link)
+            parsed_url = urllib.parse.urlparse(direct_link)
             conn = http.client.HTTPConnection(parsed_url.netloc)
             conn.request(
                 "GET",
