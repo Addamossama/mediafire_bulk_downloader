@@ -1,5 +1,5 @@
-# Mediafire Bulk Downloader(forked)
-vibe coded to handle mediafire new updates
+# Mediafire Bulk Downloader
+
 > [!WARNING]
 > **I made a rust async version of this, check it out [HERE](https://github.com/nickoehler/mediafire_rs)**
 
